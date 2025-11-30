@@ -18,5 +18,4 @@ RUN mkdir -p uploads
 # 앱이 사용 중인 포트 (예: 3000)
 EXPOSE 3000
 
-# 실행
 CMD ["node", "app.js"]
