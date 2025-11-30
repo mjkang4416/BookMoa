@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = 'mjkang4416'   
+        DOCKERHUB_CREDENTIALS = 'dockerhub-cred-id' // Jenkins에 등록한 Docker Hub credentials ID
         IMAGE_NAME = "mjkang4416/bookmoa"
     }
 
@@ -11,6 +11,20 @@ pipeline {
         stage('Clone repository') {
             steps {
                 git branch: 'main', url: 'https://github.com/mjkang4416/BookMoa.git'
+            }
+        }
+
+        stage('Install Node.js') {
+            steps {
+                // Node.js와 npm이 설치되어 있는지 확인
+                sh '''
+                if ! command -v node > /dev/null; then
+                    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+                    apt-get install -y nodejs
+                fi
+                node -v
+                npm -v
+                '''
             }
         }
 
@@ -40,7 +54,7 @@ pipeline {
         stage('Push Docker image') {
             steps {
                 script {
-                    docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIALS) {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
                         app.push("${BUILD_NUMBER}")
                         app.push("latest")
                     }
