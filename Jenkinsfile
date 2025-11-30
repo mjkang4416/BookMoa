@@ -1,27 +1,51 @@
-node {
-    def app
+pipeline {
+    agent any
 
-    stage('Clone repository') {
-        git 'https://github.com/mjkang4416/BookMoa.git'
+    environment {
+        DOCKERHUB_CREDENTIALS = 'mjkang4416'   
+        IMAGE_NAME = "mjkang4416/bookmoa"
     }
 
-    stage('Build image') {
-        app = docker.build("mjkang4416/bookmoa")
-    }
+    stages {
 
-    stage('Test image') {
-        app.inside {
-            sh """
-            npm install
-            npm test || echo 'No tests found'
-            """
+        stage('Clone repository') {
+            steps {
+                git branch: 'main', url: 'https://github.com/mjkang4416/BookMoa.git'
+            }
         }
-    }
 
-    stage('Push image') {
-        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-cred') {
-            app.push("${env.BUILD_NUMBER}")
-            app.push("latest")
+        stage('Install Node modules') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Run tests') {
+            when {
+                expression { fileExists('package.json') }
+            }
+            steps {
+                sh 'npm test || echo "테스트 스킵됨"'
+            }
+        }
+
+        stage('Build Docker image') {
+            steps {
+                script {
+                    app = docker.build("${IMAGE_NAME}:${BUILD_NUMBER}")
+                }
+            }
+        }
+
+        stage('Push Docker image') {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIALS) {
+                        app.push("${BUILD_NUMBER}")
+                        app.push("latest")
+                    }
+                }
+            }
         }
     }
 }
