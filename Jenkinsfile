@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = 'dockerhub' // Jenkins에 등록한 DockerHub credentials ID
+        DOCKERHUB_CREDENTIALS = 'mjkang4416' // Jenkins에 등록한 DockerHub credentials ID
         IMAGE_NAME = "mjkang4416/bookmoa"
     }
 
